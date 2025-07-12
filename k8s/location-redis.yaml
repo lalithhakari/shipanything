@@ -1,0 +1,46 @@
+# Redis Deployment for Location Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-redis
+  namespace: shipanything
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: location-redis
+  template:
+    metadata:
+      labels:
+        app: location-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+      volumes:
+      - name: redis-storage
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: location-redis
+  namespace: shipanything
+spec:
+  selector:
+    app: location-redis
+  ports:
+  - port: 6379
+    targetPort: 6379

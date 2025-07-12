@@ -1,0 +1,62 @@
+# PostgreSQL StatefulSet for Fraud Detector Service
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: fraud-postgres
+  namespace: shipanything
+spec:
+  serviceName: fraud-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fraud-postgres
+  template:
+    metadata:
+      labels:
+        app: fraud-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        env:
+        - name: POSTGRES_DB
+          value: "fraud_db"
+        - name: POSTGRES_USER
+          value: "fraud_user"
+        - name: POSTGRES_PASSWORD
+          value: "fraud_password"
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud-postgres
+  namespace: shipanything
+spec:
+  selector:
+    app: fraud-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  clusterIP: None

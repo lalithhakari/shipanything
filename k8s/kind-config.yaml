@@ -1,0 +1,44 @@
+# Kind cluster configuration for ShipAnything
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: shipanything
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  # Dashboard
+  - containerPort: 30080
+    hostPort: 8080
+    protocol: TCP
+  # Auth service
+  - containerPort: 30081
+    hostPort: 8081
+    protocol: TCP
+  # Location service
+  - containerPort: 30082
+    hostPort: 8082
+    protocol: TCP
+  # Payments service
+  - containerPort: 30083
+    hostPort: 8083
+    protocol: TCP
+  # Booking service
+  - containerPort: 30084
+    hostPort: 8084
+    protocol: TCP
+  # Fraud detector service
+  - containerPort: 30085
+    hostPort: 8085
+    protocol: TCP
+  # NGINX Ingress Controller
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP

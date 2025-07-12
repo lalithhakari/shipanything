@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShipAnything - Microservices Platform</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2N2VlYSI+PHBhdGggZD0iTTMgMTRoMTh2LTJIM3Yyem0wLTRoMThWOEgzdjJ6bTAtNGgxOFY0SDN2MnptMzEuNSA5LjVjMC0xLjEtLjktMi0yLTJzLTIgLjktMiAyIC45IDIgMiAyIDItLjkgMi0yem0tMTQgMGMwLTEuMS0uOS0yLTItMnMtMiAuOS0yIDIgLjkgMiAyIDIgMi0uOSAyLTJ6Ii8+PC9zdmc+"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        max-width: 800px;
+        width: 90%;
+        text-align: center;
+      }
+
+      h1 {
+        color: #2c3e50;
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        color: #7f8c8d;
+        font-size: 1.2rem;
+        margin-bottom: 3rem;
+      }
+
+      .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+      }
+
+      .service-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        text-decoration: none;
+        color: white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .service-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .service-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+
+      .service-card:hover::before {
+        transform: translateX(0);
+      }
+
+      .service-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 2;
+      }
+
+      .service-card p {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 2;
+      }
+
+      .auth-service {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      .location-service {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      .payments-service {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      }
+
+      .booking-service {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      }
+
+      .fraud-service {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      }
+
+      .tech-stack {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+      }
+
+      .tech-stack h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+      }
+
+      .tech-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+      }
+
+      .tech-tag {
+        background: #e74c3c;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .footer {
+        margin-top: 2rem;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 ShipAnything</h1>
+      <p class="subtitle">
+        Microservices Platform - Kubernetes Local Development Environment
+      </p>
+
+      <div class="services-grid">
+        <a
+          href="http://auth.shipanything.test"
+          class="service-card auth-service"
+        >
+          <h3>🔐 Auth Service</h3>
+          <p>User authentication, authorization, and identity management</p>
+        </a>
+
+        <a
+          href="http://location.shipanything.test"
+          class="service-card location-service"
+        >
+          <h3>📍 Location Service</h3>
+          <p>Geolocation, tracking, and location-based services</p>
+        </a>
+
+        <a
+          href="http://payments.shipanything.test"
+          class="service-card payments-service"
+        >
+          <h3>💳 Payments Service</h3>
+          <p>Payment processing, billing, and transaction management</p>
+        </a>
+
+        <a
+          href="http://booking.shipanything.test"
+          class="service-card booking-service"
+        >
+          <h3>📅 Booking Service</h3>
+          <p>Reservation management and scheduling system</p>
+        </a>
+
+        <a
+          href="http://fraud.shipanything.test"
+          class="service-card fraud-service"
+        >
+          <h3>🔍 Fraud Detector</h3>
+          <p>Real-time fraud detection and risk assessment</p>
+        </a>
+      </div>
+
+      <div class="tech-stack">
+        <h3>Technology Stack</h3>
+        <div class="tech-tags">
+          <span class="tech-tag">Laravel 12+</span>
+          <span class="tech-tag">Kubernetes</span>
+          <span class="tech-tag">PostgreSQL</span>
+          <span class="tech-tag">Redis</span>
+          <span class="tech-tag">RabbitMQ</span>
+          <span class="tech-tag">Kafka KRaft</span>
+          <span class="tech-tag">Docker</span>
+          <span class="tech-tag">Kind</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>🌟 Built with love for microservices architecture</p>
+      </div>
+    </div>
+  </body>
+</html>

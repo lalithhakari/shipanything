@@ -1,0 +1,56 @@
+# RabbitMQ Deployment for Auth Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-rabbitmq
+  namespace: shipanything
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-rabbitmq
+  template:
+    metadata:
+      labels:
+        app: auth-rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3-management-alpine
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "auth_user"
+        - name: RABBITMQ_DEFAULT_PASS
+          value: "auth_password"
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+        volumeMounts:
+        - name: rabbitmq-storage
+          mountPath: /var/lib/rabbitmq
+      volumes:
+      - name: rabbitmq-storage
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-rabbitmq
+  namespace: shipanything
+spec:
+  selector:
+    app: auth-rabbitmq
+  ports:
+  - name: amqp
+    port: 5672
+    targetPort: 5672
+  - name: management
+    port: 15672
+    targetPort: 15672

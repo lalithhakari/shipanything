@@ -1,0 +1,46 @@
+# Redis Deployment for Booking Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-redis
+  namespace: shipanything
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-redis
+  template:
+    metadata:
+      labels:
+        app: booking-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+      volumes:
+      - name: redis-storage
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-redis
+  namespace: shipanything
+spec:
+  selector:
+    app: booking-redis
+  ports:
+  - port: 6379
+    targetPort: 6379
