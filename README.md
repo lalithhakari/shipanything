@@ -43,6 +43,60 @@ ShipAnything is built using a distributed microservices architecture where each 
 
 ## 🆕 Recent Improvements
 
+## 🧩 Microservices as Git Submodules
+
+This project uses **Git submodules** to manage each microservice as a separate repository. This allows independent development, versioning, and deployment of each service while keeping them organized under the main platform.
+
+### Submodule Structure
+
+Each microservice in `microservices/` is a Git submodule:
+
+| Service          | Submodule Path                     | Repository URL                                                      |
+| ---------------- | ---------------------------------- | ------------------------------------------------------------------- |
+| Auth Service     | `microservices/auth-app`           | https://github.com/lalithhakari/shipanything-auth-app.git           |
+| Booking Service  | `microservices/booking-app`        | https://github.com/lalithhakari/shipanything-booking-app.git        |
+| Fraud Detector   | `microservices/fraud-detector-app` | https://github.com/lalithhakari/shipanything-fraud-detector-app.git |
+| Location Service | `microservices/location-app`       | https://github.com/lalithhakari/shipanything-location-app.git       |
+| Payments Service | `microservices/payments-app`       | https://github.com/lalithhakari/shipanything-payments-app.git       |
+
+The submodule configuration is tracked in the `.gitmodules` file.
+
+### Cloning with Submodules
+
+When cloning this repository, use the `--recurse-submodules` flag to automatically initialize and fetch all microservices:
+
+```bash
+git clone --recurse-submodules https://github.com/lalithhakari/shipanything.git
+```
+
+If you already cloned without submodules, run:
+
+```bash
+git submodule update --init --recursive
+```
+
+### Keeping Submodules Up to Date
+
+To update all submodules to their latest commits:
+
+```bash
+git submodule update --remote --merge
+```
+
+### Adding or Changing Submodules
+
+To add a new microservice as a submodule:
+
+```bash
+git submodule add <repo-url> microservices/<service-folder>
+```
+
+To change the remote URL of a submodule, edit `.gitmodules` and run:
+
+```bash
+git submodule sync
+```
+
 ### 🔧 **Enhanced Deployment Script (`deploy.sh`)**
 
 - **Real-time Monitoring**: Shows detailed pod status, readiness probe information, and events during deployment
