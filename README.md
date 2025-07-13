@@ -2,6 +2,24 @@
 
 A complete microservices architecture built with Laravel 12+, running on Kubernetes with Docker. This project demonstrates a scalable, production-ready microservices setup with comprehensive infrastructure components.
 
+## 📋 Table of Contents
+
+- [🏗️ Architecture Overview](#%EF%B8%8F-architecture-overview)
+- [🌟 Key Features](#-key-features)
+- [🧩 Microservices as Git Submodules](#-microservices-as-git-submodules)
+- [🆕 Recent Improvements](#-recent-improvements)
+- [📋 Prerequisites](#-prerequisites)
+- [🚀 Quick Start Guide](#-quick-start-guide)
+- [📂 Project Structure](#-project-structure)
+- [🔧 Script Integration Flow](#%EF%B8%8F-script-integration-flow)
+- [🛠️ Development Commands](#%EF%B8%8F-development-commands)
+- [🐛 Debugging Guide](#-debugging-guide)
+- [🔧 Configuration Details](#%EF%B8%8F-configuration-details)
+- [📊 Monitoring and Observability](#-monitoring-and-observability)
+- [🧹 Cleanup](#-cleanup)
+- [🚀 Production Deployment](#-production-deployment)
+- [🤝 Contributing](#-contributing)
+
 ## 🏗️ Architecture Overview
 
 ShipAnything is built using a distributed microservices architecture where each service has its own dedicated infrastructure:
@@ -24,7 +42,6 @@ ShipAnything is built using a distributed microservices architecture where each 
 - **RabbitMQ** - Message queuing per microservice
 - **Kafka (KRaft)** - Shared event streaming across all services
 - **Docker** - Containerization
-- **Kind** - Local Kubernetes cluster (Docker-based)
 - **NGINX Ingress** - Load balancing and routing
 
 ## 🌟 Key Features
@@ -40,8 +57,6 @@ ShipAnything is built using a distributed microservices architecture where each 
 - ✅ **Reliable Testing**: Improved connectivity tests with ingress-first approach and NodePort fallback
 - ✅ **Robust Error Handling**: Comprehensive error reporting and troubleshooting guidance
 - ✅ **Cross-Platform Compatibility**: Scripts work reliably across different shell environments
-
-## 🆕 Recent Improvements
 
 ## 🧩 Microservices as Git Submodules
 
@@ -97,26 +112,28 @@ To change the remote URL of a submodule, edit `.gitmodules` and run:
 git submodule sync
 ```
 
-### 🔧 **Enhanced Deployment Script (`deploy.sh`)**
+## 🆕 Recent Improvements
 
+### 🔧 **Enhanced Deployment Experience**
+
+- **Multi-Mode Support**: The `deploy.sh` script supports both Docker Compose (development) and Kubernetes (production-like) deployment modes
 - **Real-time Monitoring**: Shows detailed pod status, readiness probe information, and events during deployment
-- **Better Timeout Handling**: Provides informative feedback when services take longer to start
+- **Intelligent Cleanup**: Automatically handles cleanup of previous deployments with multiple cleanup options
 - **Comprehensive Status Checks**: Displays pod readiness states, restart counts, and ages
-- **Event Tracking**: Shows Kubernetes events for problematic pods to aid debugging
 
-### 🧪 **Improved Testing Script (`test-services.sh`)**
+### 🛠️ **Comprehensive Script Collection**
 
-- **Dual Testing Approach**: Primary ingress testing with NodePort fallback for maximum reliability
-- **Enhanced Compatibility**: Removed bash-specific associative arrays for broader shell support
-- **Better Error Reporting**: Shows pod status when services fail, with actionable troubleshooting steps
-- **Comprehensive Validation**: Tests both connectivity and response content validation
+- **Unified Management**: All scripts follow consistent patterns with robust error handling
+- **Development Tools**: Complete set of utilities for Laravel microservice management
+- **Enhanced Documentation**: Updated project documentation to accurately reflect current capabilities
+- **Cross-Platform Compatibility**: Scripts work reliably across different shell environments
 
-### 🛠️ **Standardized Scripts**
+### � **Production-Ready Features**
 
-- **Consistent Error Handling**: All startup scripts follow identical patterns with robust error detection
-- **Fixed Syntax Issues**: Resolved `local` variable scope issues and bash compatibility problems
-- **Cleaned Codebase**: Removed redundant and problematic scripts for a cleaner project structure
-- **Enhanced Documentation**: Updated README with current script capabilities and usage patterns
+- **Health Checks**: Each service includes liveness and readiness probes with health endpoints
+- **Resource Management**: Proper resource requests and limits for all components
+- **Event Streaming**: Kafka integration for cross-service communication
+- **Service Isolation**: Each microservice has dedicated infrastructure (database, cache, messaging)
 
 ## 📋 Prerequisites
 
@@ -157,27 +174,42 @@ laravel --version
 
 ## 🚀 Quick Start Guide
 
-### Step 1: Deploy to Kubernetes with Kind
+### Step 1: Choose Your Deployment Mode
+
+The `deploy.sh` script supports multiple deployment modes:
 
 ```bash
 # Navigate to the project directory
 cd /Users/lalith/Documents/Projects/shipanything
 
-# Deploy the entire platform
+# Run the deployment script - it will prompt you to choose a mode
 ./scripts/deploy.sh
 ```
 
-**Why Kind is the best choice**: Kind provides consistent networking across all platforms and doesn't have the limitations of other local Kubernetes solutions.
+**Available Modes:**
+1. **Docker Compose (Development)** - Fast startup with hot reload for development
+2. **Kind Kubernetes (Production-like)** - Full Kubernetes experience for testing
+3. **Clean Kind Deployment** - Fresh Kubernetes deployment with cleanup
+
+**Why use different modes?**
+- **Docker Compose**: Perfect for active development with instant code changes
+- **Kind Kubernetes**: Test production-like scenarios and Kubernetes features locally
 
 This script will:
 
+**For Docker Compose Mode:**
+- Stop any existing containers
+- Build and start all services with hot reload
+- Update your `/etc/hosts` file for custom domains
+- Display access URLs and service information
+
+**For Kubernetes Mode:**
 - Create a Kind cluster with proper port mappings
 - Install NGINX Ingress Controller with real-time status monitoring
 - Build Docker images for all services with progress tracking
-- Deploy all Kubernetes resources with detailed pod status updates
+- Deploy all Kubernetes resources with detailed status updates
 - Create NodePort services for direct access
 - Update your `/etc/hosts` file for custom domains (uses 127.0.0.1 for Kind)
-- Run comprehensive connectivity tests automatically
 - Display access URLs and troubleshooting information
 
 **Important Note**: The deployment script automatically configures your `/etc/hosts` file with localhost entries (127.0.0.1) for Kind cluster access. This ensures custom domains work properly with Kind's networking.
@@ -212,31 +244,29 @@ This script will:
 📅 Booking Service: http://booking.shipanything.test
 🔍 Fraud Detector: http://fraud.shipanything.test
 
-## 🐳 Docker Compose Hot Reload Setup
+## 🐳 Docker Compose Development Setup
 
-docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build
-For local development with instant code reload, add these lines to your /etc/hosts:
+For local development with instant code reload:
 
+```bash
+# Choose Docker Compose mode when running deploy script
+./scripts/deploy.sh
+
+# Or manually start Docker Compose
+docker-compose up --build
 ```
 
+Add these lines to your `/etc/hosts` for custom domain support:
+
+```
 127.0.0.1 auth.shipanything.test
 127.0.0.1 location.shipanything.test
 127.0.0.1 payments.shipanything.test
 127.0.0.1 booking.shipanything.test
 127.0.0.1 fraud.shipanything.test
-
-```
-
-Then run:
-
-```
-
-docker-compose up --build
-
 ```
 
 Edit your code in the microservices folders and changes will be reflected instantly.
-```
 
 ### Step 2.5: Verify Deployment
 
@@ -252,81 +282,108 @@ curl -I http://localhost:8080
 # Test custom domain access (ensure hosts file is configured)
 curl -I http://shipanything.test
 
-# Quick status check
-./scripts/status-report.sh
+# Quick status check (check pods and services)
+kubectl get pods -n shipanything
+kubectl get services -n shipanything
 ```
 
 **Expected Output**: All services should return HTTP 200 status codes, and you should see the ShipAnything landing page with service navigation.
 
-### Step 3: Test Services
+### Step 3: Verify Deployment
 
 After deployment, verify all services are working correctly:
 
 ```bash
-# Run comprehensive service connectivity tests
-./scripts/test-services.sh
+# Check all pods are running (should show 1/1 Ready for all pods)
+kubectl get pods -n shipanything
+
+# Test localhost access
+curl -I http://localhost:8080
+
+# Test custom domain access (ensure hosts file is configured)
+curl -I http://shipanything.test
+
+# Check ingress configuration
+kubectl get ingress -n shipanything
 ```
-
-This script will:
-
-- Test all services via ingress (primary method)
-- Fallback to NodePort testing if ingress fails
-- Show detailed pod status for debugging
-- Provide troubleshooting guidance if issues are found
 
 ## 📂 Project Structure
 
 ```
 shipanything/
-├── README.md                 # This file
+├── .gitmodules              # Git submodules configuration
+├── README.md                # This file
+├── docker-compose.yml       # Docker Compose configuration for development
 ├── k8s/                     # Kubernetes manifests
 │   ├── namespace.yaml       # Kubernetes namespace
-│   ├── *-postgres.yaml      # PostgreSQL databases
-│   ├── *-redis.yaml         # Redis instances
-│   ├── *-rabbitmq.yaml      # RabbitMQ instances
+│   ├── auth-app.yaml        # Auth service deployment
+│   ├── auth-postgres.yaml   # Auth PostgreSQL database
+│   ├── auth-rabbitmq.yaml   # Auth RabbitMQ instance
+│   ├── auth-redis.yaml      # Auth Redis cache
+│   ├── booking-app.yaml     # Booking service deployment
+│   ├── booking-postgres.yaml # Booking PostgreSQL database
+│   ├── booking-rabbitmq.yaml # Booking RabbitMQ instance
+│   ├── booking-redis.yaml   # Booking Redis cache
+│   ├── fraud-detector-app.yaml # Fraud detection service deployment
+│   ├── fraud-postgres.yaml  # Fraud PostgreSQL database
+│   ├── fraud-rabbitmq.yaml  # Fraud RabbitMQ instance
+│   ├── fraud-redis.yaml     # Fraud Redis cache
+│   ├── location-app.yaml    # Location service deployment
+│   ├── location-postgres.yaml # Location PostgreSQL database
+│   ├── location-rabbitmq.yaml # Location RabbitMQ instance
+│   ├── location-redis.yaml  # Location Redis cache
+│   ├── payments-app.yaml    # Payments service deployment
+│   ├── payments-postgres.yaml # Payments PostgreSQL database
+│   ├── payments-rabbitmq.yaml # Payments RabbitMQ instance
+│   ├── payments-redis.yaml  # Payments Redis cache
 │   ├── kafka.yaml           # Shared Kafka cluster
-│   ├── *-app.yaml           # Laravel application deployments
-│   ├── web-*.yaml           # Landing page components
+│   ├── web-configmap.yaml   # Web content configuration
+│   ├── web-nginx.yaml       # Web frontend deployment
 │   ├── ingress.yaml         # Ingress routing rules
 │   └── kind-config.yaml     # Kind cluster configuration
-├── microservices/           # Laravel applications
+├── microservices/           # Laravel applications (Git submodules)
 │   ├── auth-app/            # Authentication service
 │   ├── location-app/        # Location service
 │   ├── payments-app/        # Payments service
 │   ├── booking-app/         # Booking service
 │   └── fraud-detector-app/  # Fraud detection service
+├── nginx/                   # Nginx configuration files
+│   └── nginx.conf           # Main nginx configuration
 ├── scripts/                 # Utility scripts
-│   ├── deploy.sh            # 🚀 Main deployment script (enhanced monitoring)
-│   ├── test-services.sh     # 🧪 Service connectivity tests (improved reliability)
+│   ├── deploy.sh            # 🚀 Main deployment script (multi-mode support)
 │   ├── cleanup.sh           # 🧹 Environment cleanup
-│   ├── status-report.sh     # � Real-time platform status
-│   ├── verify.sh            # ✅ Prerequisites verification
-│   ├── final-check.sh       # 🔍 Comprehensive requirements check
+│   ├── verify.sh            # ✅ Prerequisites verification  
 │   ├── create-all-apps.sh   # 🏗️ Create Laravel apps (development)
 │   ├── setup-laravel-docker.sh # 🐳 Docker setup per app (development)
+│   ├── laravel-manager.sh   # 📦 Laravel application management
+│   ├── test-deployment-modes.sh # 🧪 Test different deployment modes
+│   ├── update-manifests.sh  # 🔄 Update Kubernetes manifests
 │   ├── init-databases.sh    # 💾 Database initialization (internal)
-│   └── init-laravel.sh      # ⚙️ Laravel initialization (internal)
-├── web/                     # Landing page assets
-│   └── index.html           # Main landing page
+│   ├── init-laravel.sh      # ⚙️ Laravel initialization (internal)
+│   └── utils.sh             # 🔧 Shared utility functions
+└── web/                     # Landing page assets
+    ├── index.html           # Main landing page
+    └── nginx.conf           # Web frontend nginx configuration
 ```
 
-## � Script Integration Flow
+## 🔧 Script Integration Flow
 
 The scripts are intelligently integrated to provide a seamless experience:
 
 ### 🚀 **Main Deployment Flow**
 
-- `deploy.sh` → **Enhanced with real-time monitoring** → `test-services.sh` (automatic post-deployment validation)
+- `deploy.sh` → **Multi-mode deployment** → Automatic environment setup and validation
 
 ### ✅ **Verification Flow**
 
-- `verify.sh` → **Automatically calls** → `final-check.sh` (comprehensive validation)
+- `verify.sh` → **Prerequisites validation** → Environment readiness check
 
-### 📊 **Standalone Tools**
+### 📊 **Available Tools**
 
-- `status-report.sh` - Real-time platform status with detailed cluster information
 - `cleanup.sh` - Environment cleanup with Kind cluster management
-- `test-services.sh` - Improved connectivity testing with ingress and NodePort fallback
+- `laravel-manager.sh` - Laravel application lifecycle management
+- `test-deployment-modes.sh` - Test different deployment configurations
+- `update-manifests.sh` - Update and manage Kubernetes manifests
 
 ### 🛠️ **Development Tools**
 
@@ -334,13 +391,14 @@ The scripts are intelligently integrated to provide a seamless experience:
 - `setup-laravel-docker.sh` - Docker configuration per app (called by create-all-apps.sh)
 - `init-databases.sh` - Database initialization (internal)
 - `init-laravel.sh` - Laravel initialization (internal)
+- `utils.sh` - Shared utility functions used across all scripts
 
-**Key Improvements**:
+**Key Features**:
 
-- ✅ **Enhanced Monitoring**: Real-time deployment progress with pod status and events
-- ✅ **Reliable Testing**: Improved connectivity tests using ingress-first approach
-- ✅ **Better Error Handling**: Comprehensive error reporting and troubleshooting guidance
+- ✅ **Multi-Mode Deployment**: Support for both Docker Compose (development) and Kubernetes (production) modes
+- ✅ **Enhanced Monitoring**: Real-time deployment progress with comprehensive status updates
 - ✅ **Robust Architecture**: All scripts follow consistent patterns with proper error handling
+- ✅ **Development Tools**: Complete toolkit for Laravel microservice development and management
 
 ## �🛠️ Development Commands
 
@@ -450,16 +508,19 @@ kubectl logs -f deployment/auth-app -n shipanything
 **Solutions**:
 
 ```bash
-# Run the comprehensive service test script (improved version)
-./scripts/test-services.sh
+# Run manual connectivity tests
+# Check if Kind cluster is running
+kind get clusters
 
-# This script now provides:
-# - Dual testing approach (ingress + NodePort fallback)
-# - Detailed pod status for debugging
-# - Enhanced compatibility across shell environments
-# - Actionable troubleshooting guidance
+# Verify pods are running
+kubectl get pods -n shipanything
 
-# Manual checks if needed:
+# Check service endpoints
+kubectl get endpoints -n shipanything
+
+# Test service connectivity
+curl -I http://localhost:8080
+
 # Check ingress configuration
 kubectl describe ingress -n shipanything
 
@@ -470,8 +531,6 @@ kubectl get pods -n ingress-nginx
 curl http://localhost:30080  # Main Dashboard
 curl http://localhost:30081  # Auth Service
 ```
-
-**Note**: The updated `test-services.sh` script now handles connectivity issues more robustly by testing both ingress and NodePort methods automatically.
 
 #### 4. Custom Domains Not Working
 
@@ -516,26 +575,6 @@ kubectl logs -f statefulset/auth-postgres -n shipanything
 # Connect to database directly
 kubectl exec -it auth-postgres-0 -n shipanything -- psql -U auth_user -d auth_db
 ```
-
-## 🆕 Recent Improvements
-
-### Enhanced Deployment Experience
-
-- **Real-time Monitoring**: The `deploy.sh` script now provides detailed progress tracking with pod status, events, and readiness probe information
-- **Improved Error Handling**: All scripts have been standardized with robust error handling and consistent patterns
-- **Better Testing**: The `test-services.sh` script has been completely rewritten to use reliable ingress testing with NodePort fallback
-
-### Script Optimization
-
-- **Removed Redundant Scripts**: Cleaned up `quick-fix.sh`, `quick-access.sh`, `status.sh`, and backup files
-- **Fixed Syntax Issues**: Resolved `local` variable errors and bash syntax problems
-- **Consistent Architecture**: All microservice startup scripts now follow identical patterns
-
-### Reliability Improvements
-
-- **Ingress-First Testing**: Replaced problematic port-forwarding with reliable ingress testing
-- **Enhanced Monitoring**: Real-time feedback during deployment with detailed pod status and event tracking
-- **Robust Fallbacks**: NodePort testing as fallback when ingress tests fail
 
 ## 🔧 Configuration Details
 
@@ -655,7 +694,7 @@ kubectl logs -f deployment/auth-app -n shipanything
 kubectl logs -f deployment/location-app -n shipanything
 kubectl logs -f deployment/payments-app -n shipanything
 kubectl logs -f deployment/booking-app -n shipanything
-kubectl logs -f deployment/fraud-app -n shipanything
+kubectl logs -f deployment/fraud-detector-app -n shipanything
 ```
 
 ## 🔒 Security Considerations
@@ -723,8 +762,9 @@ This setup is designed for local development. For production:
    # Open main dashboard
    open http://localhost:8080
 
-   # Run comprehensive service tests
-   ./scripts/test-services.sh
+   # Check service status
+   kubectl get pods -n shipanything
+   kubectl get services -n shipanything
    ```
 
 ### Troubleshooting M1 Specific Issues

@@ -161,7 +161,7 @@ echo ""
 # Test 6: Supporting scripts
 print_test "Testing Supporting Scripts"
 
-support_scripts=("scripts/cleanup.sh" "scripts/status-report.sh" "scripts/test-services.sh")
+support_scripts=("scripts/cleanup.sh")
 support_pass=0
 support_total=${#support_scripts[@]}
 
