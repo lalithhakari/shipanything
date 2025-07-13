@@ -128,7 +128,7 @@ git submodule sync
 - **Enhanced Documentation**: Updated project documentation to accurately reflect current capabilities
 - **Cross-Platform Compatibility**: Scripts work reliably across different shell environments
 
-### � **Production-Ready Features**
+### **Production-Ready Features**
 
 - **Health Checks**: Each service includes liveness and readiness probes with health endpoints
 - **Resource Management**: Proper resource requests and limits for all components
@@ -187,23 +187,27 @@ cd /Users/lalith/Documents/Projects/shipanything
 ```
 
 **Available Modes:**
+
 1. **Docker Compose (Development)** - Fast startup with hot reload for development
 2. **Kind Kubernetes (Production-like)** - Full Kubernetes experience for testing
 3. **Clean Kind Deployment** - Fresh Kubernetes deployment with cleanup
 
 **Why use different modes?**
+
 - **Docker Compose**: Perfect for active development with instant code changes
 - **Kind Kubernetes**: Test production-like scenarios and Kubernetes features locally
 
 This script will:
 
 **For Docker Compose Mode:**
+
 - Stop any existing containers
 - Build and start all services with hot reload
 - Update your `/etc/hosts` file for custom domains
 - Display access URLs and service information
 
 **For Kubernetes Mode:**
+
 - Create a Kind cluster with proper port mappings
 - Install NGINX Ingress Controller with real-time status monitoring
 - Build Docker images for all services with progress tracking
@@ -227,7 +231,7 @@ This script will:
 
 **Direct Access via Localhost**: Services are accessible via both localhost ports and custom domains:
 
-```bash
+````bash
 # Localhost Access (works immediately):
 🌟 Main Dashboard: http://localhost:8080
 🔐 Auth Service: http://localhost:8081
@@ -253,8 +257,8 @@ For local development with instant code reload:
 ./scripts/deploy.sh
 
 # Or manually start Docker Compose
-docker-compose up --build
-```
+docker compose up --build
+````
 
 Add these lines to your `/etc/hosts` for custom domain support:
 
@@ -352,7 +356,7 @@ shipanything/
 ├── scripts/                 # Utility scripts
 │   ├── deploy.sh            # 🚀 Main deployment script (multi-mode support)
 │   ├── cleanup.sh           # 🧹 Environment cleanup
-│   ├── verify.sh            # ✅ Prerequisites verification  
+│   ├── verify.sh            # ✅ Prerequisites verification
 │   ├── create-all-apps.sh   # 🏗️ Create Laravel apps (development)
 │   ├── setup-laravel-docker.sh # 🐳 Docker setup per app (development)
 │   ├── laravel-manager.sh   # 📦 Laravel application management
@@ -400,7 +404,7 @@ The scripts are intelligently integrated to provide a seamless experience:
 - ✅ **Robust Architecture**: All scripts follow consistent patterns with proper error handling
 - ✅ **Development Tools**: Complete toolkit for Laravel microservice development and management
 
-## �🛠️ Development Commands
+## 🛠️ Development Commands
 
 ### Managing the Cluster
 
