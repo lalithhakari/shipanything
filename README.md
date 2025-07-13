@@ -814,3 +814,25 @@ This project is open source and available under the [MIT License](LICENSE).
 **Built with ❤️ for microservices architecture enthusiasts**
 
 For questions or support, please open an issue in the repository.
+
+## 🛠️ Running Laravel Commands in Containers
+
+When using Docker Compose mode, you can execute Laravel artisan and composer commands inside any container using the `cmd.sh` script located in each app's `docker/` folder:
+
+```bash
+# Navigate to any Laravel app's docker folder
+cd microservices/auth-app/docker
+
+# Run any Laravel artisan command
+./cmd.sh php artisan migrate
+./cmd.sh php artisan make:controller UserController
+./cmd.sh php artisan tinker
+
+# Run composer commands
+./cmd.sh composer install
+./cmd.sh composer require laravel/sanctum
+```
+
+Each microservice has its own `cmd.sh` script that automatically targets the correct container. The script checks if containers are running and provides helpful error messages if they're not.
+
+Edit your code in the microservices folders and changes will be reflected instantly.
