@@ -95,6 +95,11 @@ http {
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
     
+    # Disable caching for development hot reload
+    sendfile off;
+    tcp_nopush off;
+    tcp_nodelay on;
+    
     upstream php-fpm {
         server 127.0.0.1:9000;
     }
@@ -105,6 +110,11 @@ http {
         root /var/www/html/public;
         index index.php index.html;
         
+        # Disable all caching for development
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
+        
         location / {
             try_files $uri $uri/ /index.php?$query_string;
         }
@@ -114,6 +124,11 @@ http {
             fastcgi_index index.php;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
+            
+            # Disable FastCGI caching for development
+            fastcgi_cache off;
+            fastcgi_no_cache 1;
+            fastcgi_cache_bypass 1;
         }
         
         location ~ /\.ht {
@@ -246,11 +261,39 @@ container_start() {
     print_step "Running database migrations..."
     php artisan migrate --force --no-interaction || print_warning "Migrations failed, continuing..."
     
-    # Clear and cache configuration
-    print_step "Optimizing Laravel..."
-    php artisan config:cache --no-interaction || true
-    php artisan route:cache --no-interaction || true
-    php artisan view:cache --no-interaction || true
+    # Clear all Laravel caches in container mode (mode 1) to ensure hot reload works
+    print_info "Clearing Laravel caches to ensure hot reload works in development mode"
+    
+    # Clear all possible Laravel caches
+    php artisan config:clear --no-interaction || print_warning "Config clear failed"
+    php artisan route:clear --no-interaction || print_warning "Route clear failed"  
+    php artisan view:clear --no-interaction || print_warning "View clear failed"
+    php artisan cache:clear --no-interaction || print_warning "Application cache clear failed"
+    
+    # Also clear opcache if available to ensure PHP file changes are reflected
+    php artisan optimize:clear --no-interaction || print_warning "Optimize clear failed"
+    
+    # Ensure we're in development mode by setting APP_ENV if not already set
+    if ! grep -q "APP_ENV=local" /var/www/html/.env 2>/dev/null; then
+        print_step "Setting application to local development mode..."
+        if grep -q "APP_ENV=" /var/www/html/.env 2>/dev/null; then
+            sed -i 's/APP_ENV=.*/APP_ENV=local/' /var/www/html/.env
+        else
+            echo "APP_ENV=local" >> /var/www/html/.env
+        fi
+    fi
+    
+    # Ensure APP_DEBUG is enabled for development
+    if ! grep -q "APP_DEBUG=true" /var/www/html/.env 2>/dev/null; then
+        print_step "Enabling debug mode for development..."
+        if grep -q "APP_DEBUG=" /var/www/html/.env 2>/dev/null; then
+            sed -i 's/APP_DEBUG=.*/APP_DEBUG=true/' /var/www/html/.env
+        else
+            echo "APP_DEBUG=true" >> /var/www/html/.env
+        fi
+    fi
+    
+    print_success "Laravel caches cleared - hot reload enabled"
     
     # Start PHP-FPM in background
     print_step "Starting PHP-FPM..."
@@ -311,7 +354,7 @@ k8s_init() {
         print_info "Running migrations for $app..."
         kubectl exec -n shipanything $POD -- php artisan migrate --force || print_warning "Migration failed for $app (may be expected for fresh install)"
         
-        # Clear and cache Laravel configuration
+        # Clear and cache Laravel configuration (Kubernetes production optimization)
         print_info "Optimizing Laravel configuration for $app..."
         kubectl exec -n shipanything $POD -- php artisan config:cache || print_warning "Config cache failed for $app"
         kubectl exec -n shipanything $POD -- php artisan route:cache || print_warning "Route cache failed for $app"

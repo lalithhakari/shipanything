@@ -236,6 +236,13 @@ deploy_kubernetes_apps() {
             # Run Laravel migrations
             kubectl exec -n shipanything $POD -- php artisan migrate --force
             print_success "Migrations completed for $app"
+            
+            # Optimize Laravel configuration for production (Kubernetes modes only)
+            print_step "Optimizing Laravel configuration for ${app}..."
+            kubectl exec -n shipanything $POD -- php artisan config:cache || print_warning "Config cache failed for $app"
+            kubectl exec -n shipanything $POD -- php artisan route:cache || print_warning "Route cache failed for $app"
+            kubectl exec -n shipanything $POD -- php artisan view:cache || print_warning "View cache failed for $app"
+            print_success "Laravel optimization completed for $app"
         else
             print_warning "No pod found for $app, skipping migrations"
         fi
