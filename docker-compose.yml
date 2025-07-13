@@ -1,0 +1,263 @@
+services:
+  # Main reverse proxy nginx
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: nginx-proxy-dev
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - auth-app
+      - location-app
+      - payments-app
+      - booking-app
+      - fraud-detector-app
+    restart: unless-stopped
+
+  web:
+    image: nginx:alpine
+    container_name: web-nginx-dev
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+    restart: unless-stopped
+  auth-app:
+    build:
+      context: .
+      dockerfile: ./microservices/auth-app/Dockerfile
+    image: auth-app-dev
+    container_name: auth-app-dev
+    ports:
+      - "8081:80"
+    volumes:
+      - ./microservices/auth-app:/var/www/html:delegated
+      - ./microservices/auth-app/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./microservices/auth-app/docker/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=auth-postgres
+      - DB_DATABASE=auth_db
+      - DB_USERNAME=auth_user
+      - DB_PASSWORD=auth_password
+      - REDIS_HOST=auth-redis
+    depends_on:
+      - auth-postgres
+      - auth-redis
+    command: ["/start.sh"]
+
+  location-app:
+    build:
+      context: .
+      dockerfile: ./microservices/location-app/Dockerfile
+    image: location-app-dev
+    container_name: location-app-dev
+    ports:
+      - "8082:80"
+    volumes:
+      - ./microservices/location-app:/var/www/html:delegated
+      - ./microservices/location-app/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./microservices/location-app/docker/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=location-postgres
+      - DB_DATABASE=location_db
+      - DB_USERNAME=location_user
+      - DB_PASSWORD=location_password
+      - REDIS_HOST=location-redis
+    depends_on:
+      - location-postgres
+      - location-redis
+    command: ["/start.sh"]
+
+  payments-app:
+    build:
+      context: .
+      dockerfile: ./microservices/payments-app/Dockerfile
+    image: payments-app-dev
+    container_name: payments-app-dev
+    ports:
+      - "8083:80"
+    volumes:
+      - ./microservices/payments-app:/var/www/html:delegated
+      - ./microservices/payments-app/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./microservices/payments-app/docker/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=payments-postgres
+      - DB_DATABASE=payments_db
+      - DB_USERNAME=payments_user
+      - DB_PASSWORD=payments_password
+      - REDIS_HOST=payments-redis
+    depends_on:
+      - payments-postgres
+      - payments-redis
+    command: ["/start.sh"]
+
+  booking-app:
+    build:
+      context: .
+      dockerfile: ./microservices/booking-app/Dockerfile
+    image: booking-app-dev
+    container_name: booking-app-dev
+    ports:
+      - "8084:80"
+    volumes:
+      - ./microservices/booking-app:/var/www/html:delegated
+      - ./microservices/booking-app/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./microservices/booking-app/docker/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=booking-postgres
+      - DB_DATABASE=booking_db
+      - DB_USERNAME=booking_user
+      - DB_PASSWORD=booking_password
+      - REDIS_HOST=booking-redis
+    depends_on:
+      - booking-postgres
+      - booking-redis
+    command: ["/start.sh"]
+
+  fraud-detector-app:
+    build:
+      context: .
+      dockerfile: ./microservices/fraud-detector-app/Dockerfile
+    image: fraud-detector-app-dev
+    container_name: fraud-detector-app-dev
+    ports:
+      - "8085:80"
+    volumes:
+      - ./microservices/fraud-detector-app:/var/www/html:delegated
+      - ./microservices/fraud-detector-app/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./microservices/fraud-detector-app/docker/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=fraud-postgres
+      - DB_DATABASE=fraud_db
+      - DB_USERNAME=fraud_user
+      - DB_PASSWORD=fraud_password
+      - REDIS_HOST=fraud-redis
+    depends_on:
+      - fraud-postgres
+      - fraud-redis
+    command: ["/start.sh"]
+
+  # Databases and Redis for each service
+  auth-postgres:
+    image: postgres:15-alpine
+    container_name: auth-postgres-dev
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth-postgres-data:/var/lib/postgresql/data
+
+  auth-redis:
+    image: redis:7-alpine
+    container_name: auth-redis-dev
+    ports:
+      - "6380:6379"
+    volumes:
+      - auth-redis-data:/data
+
+  location-postgres:
+    image: postgres:15-alpine
+    container_name: location-postgres-dev
+    environment:
+      POSTGRES_DB: location_db
+      POSTGRES_USER: location_user
+      POSTGRES_PASSWORD: location_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - location-postgres-data:/var/lib/postgresql/data
+
+  location-redis:
+    image: redis:7-alpine
+    container_name: location-redis-dev
+    ports:
+      - "6381:6379"
+    volumes:
+      - location-redis-data:/data
+
+  payments-postgres:
+    image: postgres:15-alpine
+    container_name: payments-postgres-dev
+    environment:
+      POSTGRES_DB: payments_db
+      POSTGRES_USER: payments_user
+      POSTGRES_PASSWORD: payments_password
+    ports:
+      - "5435:5432"
+    volumes:
+      - payments-postgres-data:/var/lib/postgresql/data
+
+  payments-redis:
+    image: redis:7-alpine
+    container_name: payments-redis-dev
+    ports:
+      - "6382:6379"
+    volumes:
+      - payments-redis-data:/data
+
+  booking-postgres:
+    image: postgres:15-alpine
+    container_name: booking-postgres-dev
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: booking_user
+      POSTGRES_PASSWORD: booking_password
+    ports:
+      - "5436:5432"
+    volumes:
+      - booking-postgres-data:/var/lib/postgresql/data
+
+  booking-redis:
+    image: redis:7-alpine
+    container_name: booking-redis-dev
+    ports:
+      - "6383:6379"
+    volumes:
+      - booking-redis-data:/data
+
+  fraud-postgres:
+    image: postgres:15-alpine
+    container_name: fraud-postgres-dev
+    environment:
+      POSTGRES_DB: fraud_db
+      POSTGRES_USER: fraud_user
+      POSTGRES_PASSWORD: fraud_password
+    ports:
+      - "5437:5432"
+    volumes:
+      - fraud-postgres-data:/var/lib/postgresql/data
+
+  fraud-redis:
+    image: redis:7-alpine
+    container_name: fraud-redis-dev
+    ports:
+      - "6384:6379"
+    volumes:
+      - fraud-redis-data:/data
+
+volumes:
+  auth-postgres-data:
+  auth-redis-data:
+  location-postgres-data:
+  location-redis-data:
+  payments-postgres-data:
+  payments-redis-data:
+  booking-postgres-data:
+  booking-redis-data:
+  fraud-postgres-data:
+  fraud-redis-data:

@@ -14,6 +14,33 @@ spec:
       labels:
         app: booking-app
     spec:
+      initContainers:
+      - name: booking-migration
+        image: booking-app:latest
+        imagePullPolicy: Never
+        env:
+        - name: APP_ENV
+          value: "production"
+        - name: APP_DEBUG
+          value: "false"
+        - name: DB_CONNECTION
+          value: "pgsql"
+        - name: DB_HOST
+          value: "booking-postgres"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_DATABASE
+          value: "booking_db"
+        - name: DB_USERNAME
+          value: "booking_user"
+        - name: DB_PASSWORD
+          value: "booking_password"
+        - name: REDIS_HOST
+          value: "booking-redis"
+        - name: REDIS_PORT
+          value: "6379"
+        command: ["/bin/sh"]
+        args: ["-c", "cd /var/www/html && php artisan migrate --force"]
       containers:
       - name: booking-app
         image: booking-app:latest
@@ -25,6 +52,8 @@ spec:
           value: "production"
         - name: APP_DEBUG
           value: "false"
+        - name: APP_KEY
+          value: "base64:$(echo 'booking-service-key-shipanything-2025' | base64)"
         - name: DB_CONNECTION
           value: "pgsql"
         - name: DB_HOST
@@ -52,16 +81,16 @@ spec:
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /
+            path: /health.php
             port: 80
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /
+            path: /health.php
             port: 80
-          initialDelaySeconds: 60
-          periodSeconds: 10
+          initialDelaySeconds: 20
+          periodSeconds: 5
           timeoutSeconds: 5
           failureThreshold: 6
 ---

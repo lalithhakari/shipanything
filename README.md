@@ -211,6 +211,31 @@ This script will:
 💳 Payments Service: http://payments.shipanything.test
 📅 Booking Service: http://booking.shipanything.test
 🔍 Fraud Detector: http://fraud.shipanything.test
+
+## 🐳 Docker Compose Hot Reload Setup
+
+docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build
+For local development with instant code reload, add these lines to your /etc/hosts:
+
+```
+
+127.0.0.1 auth.shipanything.test
+127.0.0.1 location.shipanything.test
+127.0.0.1 payments.shipanything.test
+127.0.0.1 booking.shipanything.test
+127.0.0.1 fraud.shipanything.test
+
+```
+
+Then run:
+
+```
+
+docker-compose up --build
+
+```
+
+Edit your code in the microservices folders and changes will be reflected instantly.
 ```
 
 ### Step 2.5: Verify Deployment
