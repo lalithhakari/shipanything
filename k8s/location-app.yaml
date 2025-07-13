@@ -53,7 +53,7 @@ spec:
         - name: APP_DEBUG
           value: "false"
         - name: APP_KEY
-          value: "base64:$(echo 'location-service-key-shipanything-2025' | base64)"
+          value: "base64:qot4yzhMS8ZQrOtfjNP1GncP2AC+mFvuw42ux2GnCXM="
         - name: DB_CONNECTION
           value: "pgsql"
         - name: DB_HOST

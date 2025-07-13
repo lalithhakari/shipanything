@@ -53,7 +53,7 @@ spec:
         - name: APP_DEBUG
           value: "false"
         - name: APP_KEY
-          value: "base64:$(echo 'booking-service-key-shipanything-2025' | base64)"
+          value: "base64:WaDd0e8tU4K1HByATS3lo7lmnNJFH8Y3c5NM+XtpPuE="
         - name: DB_CONNECTION
           value: "pgsql"
         - name: DB_HOST

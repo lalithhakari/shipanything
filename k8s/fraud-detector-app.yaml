@@ -52,6 +52,8 @@ spec:
           value: "production"
         - name: APP_DEBUG
           value: "false"
+        - name: APP_KEY
+          value: "base64:ZGvVFt0REPcB8d1tdkdZwDFrCGtNYN4o1sbC79r8ifE="
         - name: DB_CONNECTION
           value: "pgsql"
         - name: DB_HOST
