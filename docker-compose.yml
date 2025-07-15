@@ -44,9 +44,14 @@ services:
       - DB_USERNAME=auth_user
       - DB_PASSWORD=auth_password
       - REDIS_HOST=auth-redis
+      - RABBITMQ_HOST=auth-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=auth_user
+      - RABBITMQ_PASSWORD=auth_password
     depends_on:
       - auth-postgres
       - auth-redis
+      - auth-rabbitmq
     command: ["/start.sh"]
 
   location-app:
@@ -69,9 +74,14 @@ services:
       - DB_USERNAME=location_user
       - DB_PASSWORD=location_password
       - REDIS_HOST=location-redis
+      - RABBITMQ_HOST=location-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=location_user
+      - RABBITMQ_PASSWORD=location_password
     depends_on:
       - location-postgres
       - location-redis
+      - location-rabbitmq
     command: ["/start.sh"]
 
   payments-app:
@@ -94,9 +104,14 @@ services:
       - DB_USERNAME=payments_user
       - DB_PASSWORD=payments_password
       - REDIS_HOST=payments-redis
+      - RABBITMQ_HOST=payments-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=payments_user
+      - RABBITMQ_PASSWORD=payments_password
     depends_on:
       - payments-postgres
       - payments-redis
+      - payments-rabbitmq
     command: ["/start.sh"]
 
   booking-app:
@@ -119,9 +134,14 @@ services:
       - DB_USERNAME=booking_user
       - DB_PASSWORD=booking_password
       - REDIS_HOST=booking-redis
+      - RABBITMQ_HOST=booking-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=booking_user
+      - RABBITMQ_PASSWORD=booking_password
     depends_on:
       - booking-postgres
       - booking-redis
+      - booking-rabbitmq
     command: ["/start.sh"]
 
   fraud-detector-app:
@@ -144,9 +164,14 @@ services:
       - DB_USERNAME=fraud_user
       - DB_PASSWORD=fraud_password
       - REDIS_HOST=fraud-redis
+      - RABBITMQ_HOST=fraud-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=fraud_user
+      - RABBITMQ_PASSWORD=fraud_password
     depends_on:
       - fraud-postgres
       - fraud-redis
+      - fraud-rabbitmq
     command: ["/start.sh"]
 
   # Databases and Redis for each service
@@ -170,6 +195,18 @@ services:
     volumes:
       - auth-redis-data:/data
 
+  auth-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: auth-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: auth_user
+      RABBITMQ_DEFAULT_PASS: auth_password
+    ports:
+      - "5672:5672" # AMQP port
+      - "15672:15672" # Management UI port
+    volumes:
+      - auth-rabbitmq-data:/var/lib/rabbitmq
+
   location-postgres:
     image: postgres:15-alpine
     container_name: location-postgres-dev
@@ -189,6 +226,18 @@ services:
       - "6381:6379"
     volumes:
       - location-redis-data:/data
+
+  location-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: location-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: location_user
+      RABBITMQ_DEFAULT_PASS: location_password
+    ports:
+      - "5673:5672" # AMQP port
+      - "15673:15672" # Management UI port
+    volumes:
+      - location-rabbitmq-data:/var/lib/rabbitmq
 
   payments-postgres:
     image: postgres:15-alpine
@@ -210,6 +259,18 @@ services:
     volumes:
       - payments-redis-data:/data
 
+  payments-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: payments-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: payments_user
+      RABBITMQ_DEFAULT_PASS: payments_password
+    ports:
+      - "5674:5672" # AMQP port
+      - "15674:15672" # Management UI port
+    volumes:
+      - payments-rabbitmq-data:/var/lib/rabbitmq
+
   booking-postgres:
     image: postgres:15-alpine
     container_name: booking-postgres-dev
@@ -229,6 +290,18 @@ services:
       - "6383:6379"
     volumes:
       - booking-redis-data:/data
+
+  booking-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: booking-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: booking_user
+      RABBITMQ_DEFAULT_PASS: booking_password
+    ports:
+      - "5675:5672" # AMQP port
+      - "15675:15672" # Management UI port
+    volumes:
+      - booking-rabbitmq-data:/var/lib/rabbitmq
 
   fraud-postgres:
     image: postgres:15-alpine
@@ -250,14 +323,31 @@ services:
     volumes:
       - fraud-redis-data:/data
 
+  fraud-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fraud-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: fraud_user
+      RABBITMQ_DEFAULT_PASS: fraud_password
+    ports:
+      - "5676:5672" # AMQP port
+      - "15676:15672" # Management UI port
+    volumes:
+      - fraud-rabbitmq-data:/var/lib/rabbitmq
+
 volumes:
   auth-postgres-data:
   auth-redis-data:
+  auth-rabbitmq-data:
   location-postgres-data:
   location-redis-data:
+  location-rabbitmq-data:
   payments-postgres-data:
   payments-redis-data:
+  payments-rabbitmq-data:
   booking-postgres-data:
   booking-redis-data:
+  booking-rabbitmq-data:
   fraud-postgres-data:
   fraud-redis-data:
+  fraud-rabbitmq-data:

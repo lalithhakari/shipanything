@@ -248,6 +248,13 @@ This script will:
 📅 Booking Service: http://booking.shipanything.test
 🔍 Fraud Detector: http://fraud.shipanything.test
 
+# RabbitMQ Management UI Access:
+🐰 Auth RabbitMQ: http://localhost:15672 (user: auth_user, pass: auth_password)
+🐰 Location RabbitMQ: http://localhost:15673 (user: location_user, pass: location_password)
+🐰 Payments RabbitMQ: http://localhost:15674 (user: payments_user, pass: payments_password)
+🐰 Booking RabbitMQ: http://localhost:15675 (user: booking_user, pass: booking_password)
+🐰 Fraud RabbitMQ: http://localhost:15676 (user: fraud_user, pass: fraud_password)
+
 ## 🐳 Docker Compose Development Setup
 
 For local development with instant code reload:
@@ -604,7 +611,17 @@ Each service has its own Redis instance for caching:
 
 ### RabbitMQ Configuration
 
-Each service has its own RabbitMQ instance:
+Each service has its own RabbitMQ instance with management UI:
+
+**Localhost Access (Docker Compose mode):**
+
+- Auth RabbitMQ: http://localhost:15672 (user: `auth_user`, pass: `auth_password`)
+- Location RabbitMQ: http://localhost:15673 (user: `location_user`, pass: `location_password`)
+- Payments RabbitMQ: http://localhost:15674 (user: `payments_user`, pass: `payments_password`)
+- Booking RabbitMQ: http://localhost:15675 (user: `booking_user`, pass: `booking_password`)
+- Fraud RabbitMQ: http://localhost:15676 (user: `fraud_user`, pass: `fraud_password`)
+
+**Internal Service Communication:**
 
 - Management UI accessible at `<service>-rabbitmq:15672`
 - AMQP connection at `<service>-rabbitmq:5672`
