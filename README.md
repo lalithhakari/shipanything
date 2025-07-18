@@ -40,7 +40,7 @@ ShipAnything is built using a distributed microservices architecture where each 
 - **PostgreSQL** - Dedicated database per microservice
 - **Redis** - Caching and session storage per microservice
 - **RabbitMQ** - Message queuing per microservice
-- **Kafka (KRaft)** - Shared event streaming across all services
+- **Kafka (KRaft)** - Shared event streaming across all services (Access Kafka UI via http://shipanything.test:8090/)
 - **Docker** - Containerization
 - **NGINX Ingress** - Load balancing and routing
 
