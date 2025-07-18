@@ -72,6 +72,8 @@ spec:
           value: "6379"
         - name: KAFKA_BROKERS
           value: "kafka:29092"
+        - name: KAFKA_CONSUMER_GROUP_ID
+          value: "fraud_consumer_group"
         resources:
           requests:
             memory: "256Mi"

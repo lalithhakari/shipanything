@@ -40,6 +40,7 @@ services:
       - APP_ENV=local
       - APP_DEBUG=true
       - DB_HOST=auth-postgres
+      - DB_PORT=5432
       - DB_DATABASE=auth_db
       - DB_USERNAME=auth_user
       - DB_PASSWORD=auth_password
@@ -49,6 +50,7 @@ services:
       - RABBITMQ_USER=auth_user
       - RABBITMQ_PASSWORD=auth_password
       - KAFKA_BROKERS=kafka:29092
+      - KAFKA_CONSUMER_GROUP_ID=auth_consumer_group
     depends_on:
       - auth-postgres
       - auth-redis
@@ -81,6 +83,7 @@ services:
       - RABBITMQ_USER=location_user
       - RABBITMQ_PASSWORD=location_password
       - KAFKA_BROKERS=kafka:29092
+      - KAFKA_CONSUMER_GROUP_ID=location_consumer_group
     depends_on:
       - location-postgres
       - location-redis
@@ -113,6 +116,7 @@ services:
       - RABBITMQ_USER=payments_user
       - RABBITMQ_PASSWORD=payments_password
       - KAFKA_BROKERS=kafka:29092
+      - KAFKA_CONSUMER_GROUP_ID=payments_consumer_group
     depends_on:
       - payments-postgres
       - payments-redis
@@ -145,6 +149,7 @@ services:
       - RABBITMQ_USER=booking_user
       - RABBITMQ_PASSWORD=booking_password
       - KAFKA_BROKERS=kafka:29092
+      - KAFKA_CONSUMER_GROUP_ID=booking_consumer_group
     depends_on:
       - booking-postgres
       - booking-redis
@@ -177,6 +182,7 @@ services:
       - RABBITMQ_USER=fraud_user
       - RABBITMQ_PASSWORD=fraud_password
       - KAFKA_BROKERS=kafka:29092
+      - KAFKA_CONSUMER_GROUP_ID=fraud_consumer_group
     depends_on:
       - fraud-postgres
       - fraud-redis
@@ -363,12 +369,27 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
     ports:
       - "9092:9092"
       - "29092:29092"
     volumes:
       - kafka-data:/var/lib/kafka/data
+
+  # Kafka UI for Kafka management
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui-dev
+    depends_on:
+      - kafka
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
+    restart: unless-stopped
 
 volumes:
   auth-postgres-data:
