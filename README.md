@@ -32,6 +32,20 @@ ShipAnything is built using a distributed microservices architecture where each 
 - **📅 Booking Service** (`booking.shipanything.test`) - Reservation management and scheduling system
 - **🔍 Fraud Detector** (`fraud.shipanything.test`) - Real-time fraud detection and risk assessment
 
+## Service Access URLs
+
+### Kafka UI
+
+Access Kafka UI via http://shipanything.test:8090/
+
+### RabbitMQ Management UI
+
+- **Auth Service:** http://localhost:15672 (auth_user / auth_password)
+- **Location Service:** http://localhost:15673 (location_user / location_password)
+- **Payments Service:** http://localhost:15674 (payments_user / payments_password)
+- **Booking Service:** http://localhost:15675 (booking_user / booking_password)
+- **Fraud Detector Service:** http://localhost:15676 (fraud_user / fraud_password)
+
 ### 🎯 Infrastructure Components
 
 - **Laravel 12+** - Modern PHP framework for each microservice
