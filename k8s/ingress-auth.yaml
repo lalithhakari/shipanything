@@ -1,0 +1,118 @@
+# Ingress Configuration with Authentication
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shipanything-ingress
+  namespace: shipanything
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    
+    # Authentication configuration
+    nginx.ingress.kubernetes.io/auth-url: "http://auth-app.shipanything.svc.cluster.local/api/auth/validate-token"
+    nginx.ingress.kubernetes.io/auth-method: "POST"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-User-ID,X-User-Email"
+    
+    # Configure which paths require authentication
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      # Allow public access to certain paths
+      location ~ ^/(health|api/test/|api/auth/(login|register|validate-token)) {
+        auth_request off;
+      }
+      
+      # Rate limiting for auth endpoints
+      location ~ ^/api/auth/(login|register) {
+        limit_req zone=auth_limit burst=5 nodelay;
+      }
+      
+      # All other paths require authentication (handled by auth-url annotation)
+spec:
+  ingressClassName: nginx
+  rules:
+  # Main landing page (no auth required)
+  - host: shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-nginx
+            port:
+              number: 80
+  
+  # Auth Service (mixed public/protected endpoints)
+  - host: auth.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-app
+            port:
+              number: 80
+  
+  # Location Service (protected)
+  - host: location.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: location-app
+            port:
+              number: 80
+  
+  # Payments Service (protected)
+  - host: payments.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: payments-app
+            port:
+              number: 80
+  
+  # Booking Service (protected)
+  - host: booking.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: booking-app
+            port:
+              number: 80
+  
+  # Fraud Detector Service (protected)
+  - host: fraud.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fraud-detector-app
+            port:
+              number: 80
+
+---
+# Auth Rate Limiting ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-rate-limiting
+  namespace: shipanything
+data:
+  nginx.conf: |
+    http {
+      limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=10r/m;
+      limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/m;
+    }

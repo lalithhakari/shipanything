@@ -22,11 +22,13 @@ ShipAnything demonstrates a distributed microservices architecture where each se
 
 ### 🔧 Microservices
 
-- **🔐 Auth Service** (`auth.shipanything.test`) - Authentication, authorization, and identity management
-- **📍 Location Service** (`location.shipanything.test`) - Geolocation, tracking, and location-based services
-- **💳 Payments Service** (`payments.shipanything.test`) - Payment processing, billing, and transaction management
-- **📅 Booking Service** (`booking.shipanything.test`) - Reservation management and scheduling system
-- **🔍 Fraud Detector** (`fraud.shipanything.test`) - Real-time fraud detection and risk assessment
+- **🔐 Auth Service** (`auth.shipanything.test`) - Authentication, authorization, JWT token management, and API gateway integration
+- **📍 Location Service** (`location.shipanything.test`) - Geolocation, tracking, and location-based services (Protected by Auth Gateway)
+- **💳 Payments Service** (`payments.shipanything.test`) - Payment processing, billing, and transaction management (Protected by Auth Gateway)
+- **📅 Booking Service** (`booking.shipanything.test`) - Reservation management and scheduling system (Protected by Auth Gateway)
+- **🔍 Fraud Detector** (`fraud.shipanything.test`) - Real-time fraud detection and risk assessment (Protected by Auth Gateway)
+
+**All services except Auth require Bearer token authentication via the NGINX API Gateway.**
 
 ### 🎯 Infrastructure Components
 
@@ -49,6 +51,8 @@ ShipAnything demonstrates a distributed microservices architecture where each se
 - ✅ **Local Development Ready**: Complete local setup with custom domains and hot reload
 - ✅ **Production-Grade**: Health checks, resource limits, and monitoring ready
 - ✅ **Modern UI**: Beautiful landing page with service navigation
+- ✅ **API Gateway & Authentication**: NGINX-based gateway with JWT authentication for all protected services
+- ✅ **Security**: Rate limiting, token validation, and secure inter-service communication
 
 ## 📋 Prerequisites
 
@@ -124,6 +128,82 @@ echo "127.0.0.1 auth.shipanything.test location.shipanything.test payments.shipa
 - RabbitMQ: `/api/test/rabbitmq`
 - Kafka: `/api/test/kafka`
 
+## 🔐 Authentication & API Gateway Architecture
+
+The ShipAnything platform implements a **centralized authentication system** using NGINX as an **API Gateway** with JWT token validation. This approach provides secure, scalable authentication across all microservices.
+
+### **API Gateway (NGINX) - Your Entry Point**
+
+**🌐 Local Development Access:**
+
+- **Main Dashboard**: http://shipanything.test or http://localhost:8080
+- **API Gateway Entry Points**: All `*.shipanything.test` domains route through NGINX
+
+**🔧 API Gateway Functions:**
+
+- **Request Routing**: Routes traffic to appropriate microservices
+- **Authentication**: Validates JWT tokens for all protected endpoints
+- **User Context**: Injects user information into requests
+- **Rate Limiting**: Protects against abuse (10 req/min auth, 100 req/min API)
+- **Load Balancing**: Distributes traffic across service instances
+
+### **Authentication Flow:**
+
+```
+Client Request → NGINX API Gateway → Auth Validation → Target Service
+     ↓
+1. Client sends request to *.shipanything.test
+2. NGINX gateway intercepts and validates Bearer token
+3. Auth service validates JWT and returns user context
+4. NGINX forwards request + user context to target service
+5. Target service processes with authenticated user context
+6. Response returns through gateway to client
+```
+
+### **Quick Authentication Setup:**
+
+1. **Register a user:**
+
+```bash
+curl -X POST http://auth.shipanything.test/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name": "John Doe", "email": "john@example.com", "password": "password123", "password_confirmation": "password123"}'
+```
+
+2. **Login and get access token:**
+
+```bash
+curl -X POST http://auth.shipanything.test/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com", "password": "password123"}'
+```
+
+3. **Access protected services via API Gateway:**
+
+```bash
+curl -X GET http://location.shipanything.test/api/locations \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+curl -X GET http://payments.shipanything.test/api/payments \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### **Deployment Modes:**
+
+**Mode 1 (Docker Compose):**
+
+- NGINX as reverse proxy + API gateway
+- Direct container-to-container communication
+- Custom domain routing via hosts file
+
+**Mode 2 (Kubernetes):**
+
+- NGINX Ingress Controller as API gateway
+- Kubernetes-native service discovery
+- Advanced authentication annotations
+
+**📖 Complete Setup Guide:** See [AUTHENTICATION.md](AUTHENTICATION.md) for detailed configuration and examples.
+
 ## **Why Kind?**
 
 **Kind (Kubernetes IN Docker)** is the ideal choice for local Kubernetes development:
@@ -134,6 +214,49 @@ echo "127.0.0.1 auth.shipanything.test location.shipanything.test payments.shipa
 - ✅ **Multi-node support** - test complex scenarios locally
 - ✅ **CI/CD ready** - same tool used in production pipelines
 - ✅ **Lightweight** - minimal resource overhead
+
+## 🔐 API Gateway & Authentication Approach
+
+### **Recommended Architecture (Currently Implemented)**
+
+The ShipAnything platform follows **Approach 1** - a centralized API Gateway pattern:
+
+```
+Client Request → NGINX API Gateway → Auth Service (Token Validation) → Target Microservice
+```
+
+**How it works:**
+
+1. **All requests** to `*.shipanything.test` domains go through NGINX API Gateway
+2. **NGINX validates** the Bearer token by calling the auth service internally
+3. **Auth service** validates JWT and returns user context (ID, email, roles)
+4. **NGINX forwards** the request to the target service with user context headers
+5. **Target service** processes business logic with authenticated user context
+6. **Response flows back** through NGINX to the client
+
+### **Why This Approach?**
+
+✅ **Centralized Security**: Single point for authentication logic
+✅ **Service Isolation**: Microservices don't handle auth complexity
+✅ **Performance**: Token validation cached and optimized at gateway
+✅ **Scalability**: Easy to add new services without auth code duplication
+✅ **Flexibility**: Support for different auth methods (JWT, API keys, OAuth)
+✅ **Rate Limiting**: Built-in protection against abuse
+✅ **Monitoring**: Centralized logging and security analytics
+
+### **Implementation Details**
+
+**Mode 1 (Docker Compose):**
+
+- Uses `nginx/nginx-auth.conf` for authentication
+- NGINX `auth_request` module validates tokens
+- User context passed via HTTP headers (`X-User-ID`, `X-User-Email`)
+
+**Mode 2 (Kubernetes):**
+
+- Uses `k8s/ingress-auth.yaml` with NGINX Ingress Controller
+- Advanced annotations for authentication and rate limiting
+- Native Kubernetes service discovery and load balancing
 
 ## 🧩 Microservices as Git Submodules
 
@@ -162,6 +285,66 @@ git submodule update --remote --merge
 
 ## 🛠️ Development
 
+### Authentication Testing
+
+Test the complete authentication flow:
+
+```bash
+# 1. Register a new user
+curl -X POST http://auth.shipanything.test/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+  }'
+
+# 2. Login and extract token
+RESPONSE=$(curl -s -X POST http://auth.shipanything.test/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}')
+
+TOKEN=$(echo $RESPONSE | jq -r '.access_token')
+
+# 3. Test protected endpoints via API Gateway
+curl -X GET http://location.shipanything.test/api/locations \
+  -H "Authorization: Bearer $TOKEN"
+
+curl -X GET http://payments.shipanything.test/api/payments \
+  -H "Authorization: Bearer $TOKEN"
+
+curl -X GET http://booking.shipanything.test/api/bookings \
+  -H "Authorization: Bearer $TOKEN"
+
+curl -X GET http://fraud.shipanything.test/api/fraud/reports \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Switching Between Authentication Modes
+
+The project supports two authentication configurations:
+
+**Basic Mode (No Authentication) - `nginx/nginx.conf`:**
+
+```bash
+# Copy basic NGINX config (current default)
+cp nginx/nginx.conf nginx/nginx.conf.backup
+```
+
+**Protected Mode (Full Authentication) - `nginx/nginx-auth.conf`:**
+
+```bash
+# For Docker Compose (Mode 1) - Enable authentication
+cp nginx/nginx-auth.conf nginx/nginx.conf
+docker compose down && docker compose up --build -d
+
+# For Kubernetes (Mode 2) - Use auth-enabled ingress
+kubectl apply -f k8s/ingress-auth.yaml
+```
+
+**Note**: The auth-enabled configurations provide enterprise-grade security with JWT validation, rate limiting, and user context injection.
+
 ### Running Laravel Commands
 
 Execute Laravel artisan and composer commands inside containers:
@@ -179,19 +362,49 @@ cd microservices/auth-app/docker
 ### Development Scripts
 
 ```bash
-# Verify all services are working
+# Verify all services are working (including authentication)
 ./scripts/verify.sh
 
 # Clean up resources
 ./scripts/cleanup.sh
 
-# Initialize databases
+# Initialize databases with proper auth setup
 ./scripts/init-databases.sh
 ```
 
 ### Hot Reload Development
 
 When using Docker Compose mode, code changes are reflected instantly. Edit files in the `microservices/` folders and see changes immediately.
+
+### Testing Protected Services
+
+All services except Auth require authentication. Here's how to test them:
+
+```bash
+# Step 1: Get authentication token
+AUTH_RESPONSE=$(curl -s -X POST http://auth.shipanything.test/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "your@email.com", "password": "yourpassword"}')
+
+TOKEN=$(echo $AUTH_RESPONSE | jq -r '.access_token')
+
+# Step 2: Test each protected service
+echo "Testing Location Service..."
+curl -X GET http://location.shipanything.test/api/locations \
+  -H "Authorization: Bearer $TOKEN"
+
+echo "Testing Payments Service..."
+curl -X GET http://payments.shipanything.test/api/payments \
+  -H "Authorization: Bearer $TOKEN"
+
+echo "Testing Booking Service..."
+curl -X GET http://booking.shipanything.test/api/bookings \
+  -H "Authorization: Bearer $TOKEN"
+
+echo "Testing Fraud Detector..."
+curl -X GET http://fraud.shipanything.test/api/fraud/reports \
+  -H "Authorization: Bearer $TOKEN"
+```
 
 ## 📂 Project Structure
 
@@ -621,3 +834,13 @@ This project is open source and available under the [MIT License](LICENSE).
 **Built with ❤️ for microservices architecture enthusiasts**
 
 For questions or support, please open an issue in the repository.
+
+┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│ Client │───▶│ API Gateway │───▶│ Auth Service│───▶│Target Service│
+│ │ │ (NGINX) │ │ (JWT Verify)│ │(Business Logic)│
+└─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
+
+┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│ Client │───▶│ API Gateway │───▶│ Auth Service│───▶│Target Service│
+│ │ │ (NGINX) │ │ (JWT Verify)│ │(Business Logic)│
+└─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
