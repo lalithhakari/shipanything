@@ -74,6 +74,14 @@ spec:
           value: "kafka:29092"
         - name: KAFKA_CONSUMER_GROUP_ID
           value: "fraud_consumer_group"
+        - name: RABBITMQ_HOST
+          value: "fraud-rabbitmq"
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_USER
+          value: "fraud_user"
+        - name: RABBITMQ_PASSWORD
+          value: "fraud_password"
         resources:
           requests:
             memory: "256Mi"

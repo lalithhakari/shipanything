@@ -74,6 +74,14 @@ spec:
           value: "kafka:29092"
         - name: KAFKA_CONSUMER_GROUP_ID
           value: "auth_consumer_group"
+        - name: RABBITMQ_HOST
+          value: "auth-rabbitmq"
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_USER
+          value: "auth_user"
+        - name: RABBITMQ_PASSWORD
+          value: "auth_password"
         resources:
           requests:
             memory: "256Mi"

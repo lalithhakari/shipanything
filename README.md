@@ -58,11 +58,22 @@ Access Kafka UI via http://shipanything.test:8090/
 - **Docker** - Containerization
 - **NGINX Ingress** - Load balancing and routing
 
+### 🧪 Testing Endpoints
+
+Each microservice includes comprehensive testing endpoints to validate infrastructure connectivity:
+
+- **Database, Cache & Redis Test**: `/api/test/dbs` - Tests PostgreSQL, Laravel Cache, and Redis connections
+- **RabbitMQ Test**: `/api/test/rabbitmq` - Tests RabbitMQ connection, message publishing and consumption
+- **Kafka Test**: `/api/test/kafka` - Tests Kafka producer and consumer functionality with full round-trip messaging
+
+Example: Test Auth Service connectivity at `http://auth.shipanything.test/api/test/kafka`
+
 ## 🌟 Key Features
 
 - ✅ **Service Isolation**: Each microservice has its own database, cache, and message queue
 - ✅ **Scalable Architecture**: Kubernetes-native with horizontal pod autoscaling ready
 - ✅ **Event-Driven Communication**: Kafka for cross-service communication
+- ✅ **Comprehensive Testing**: Built-in test endpoints for database, cache, RabbitMQ, and Kafka connectivity
 - ✅ **Dual Access Methods**: Services accessible via both localhost ports and custom subdomains
 - ✅ **Local Development Ready**: Complete local setup with custom domains
 - ✅ **Production-Grade**: Health checks, resource limits, and monitoring ready
