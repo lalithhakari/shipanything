@@ -9,10 +9,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 Starting ShipAnything microservices access...${NC}"
-echo -e "${YELLOW}📡 Setting up Kong port forwarding on localhost:8080${NC}"
+echo -e "${YELLOW}📡 Setting up Kong port forwarding on localhost:80${NC}"
 
 # Kill any existing port forwarding
-pkill -f "kubectl port-forward.*8080:80" 2>/dev/null || true
+pkill -f "kubectl port-forward.*80:80" 2>/dev/null || true
 sleep 2
 
 # Check if Kong service exists and find the right one
@@ -35,7 +35,7 @@ fi
 echo -e "${BLUE}Found Kong service: ${kong_service}${NC}"
 
 # Start port forwarding in background
-kubectl port-forward -n "${kong_service%/*}" "service/${kong_service#*/}" 8080:80 >/dev/null 2>&1 &
+kubectl port-forward -n "${kong_service%/*}" "service/${kong_service#*/}" 80:80 >/dev/null 2>&1 &
 KUBECTL_PID=$!
 
 # Wait a moment and check if port forwarding is working
@@ -44,11 +44,11 @@ if kill -0 $KUBECTL_PID 2>/dev/null; then
     echo -e "${GREEN}✅ Port forwarding started (PID: $KUBECTL_PID)${NC}"
     echo ""
     echo -e "${GREEN}🌐 Your microservices are now accessible at:${NC}"
-    echo -e "${BLUE}   • Auth Service:     http://auth.shipanything.test:8080${NC}"
-    echo -e "${BLUE}   • Booking Service:  http://booking.shipanything.test:8080${NC}"
-    echo -e "${BLUE}   • Detector Service: http://detector.shipanything.test:8080${NC}"
-    echo -e "${BLUE}   • Location Service: http://location.shipanything.test:8080${NC}"
-    echo -e "${BLUE}   • Payments Service: http://payments.shipanything.test:8080${NC}"
+    echo -e "${BLUE}   • Auth Service:     http://auth.shipanything.test${NC}"
+    echo -e "${BLUE}   • Booking Service:  http://booking.shipanything.test${NC}"
+    echo -e "${BLUE}   • Detector Service: http://detector.shipanything.test${NC}"
+    echo -e "${BLUE}   • Location Service: http://location.shipanything.test${NC}"
+    echo -e "${BLUE}   • Payments Service: http://payments.shipanything.test${NC}"
     echo ""
     echo -e "${YELLOW}📝 To stop port forwarding, run: kill $KUBECTL_PID${NC}"
     echo -e "${YELLOW}💡 Or use: pkill -f 'kubectl port-forward'${NC}"
