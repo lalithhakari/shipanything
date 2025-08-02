@@ -1,0 +1,474 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shipanything
+  annotations:
+    kuma.io/sidecar-injection: enabled
+  labels:
+    name: shipanything
+    kuma.io/sidecar-injection: enabled
+---
+apiVersion: kuma.io/v1alpha1
+kind: Mesh
+metadata:
+  name: shipanything-mesh
+spec:
+  mtls:
+    enabledBackend: ca-1
+    backends:
+    - name: ca-1
+      type: builtin
+  logging:
+    defaultBackend: file
+    backends:
+    - name: file
+      type: file
+      conf:
+        path: /var/log/access.log
+  tracing:
+    defaultBackend: jaeger
+    backends:
+    - name: jaeger
+      type: jaeger
+      conf:
+        address: jaeger-collector:14268
+        endpoint: /api/traces
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: auth-app-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: auth-app_shipanything_svc_80
+  from:
+  - targetRef:
+      kind: Mesh
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: auth-postgres_shipanything_svc_5432
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: redis_shipanything_svc_6379
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: rabbitmq_shipanything_svc_5672
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: kafka_shipanything_svc_9092
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: booking-app-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: booking-app_shipanything_svc_80
+  from:
+  - targetRef:
+      kind: Mesh
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: booking-postgres_shipanything_svc_5432
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: redis_shipanything_svc_6379
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: rabbitmq_shipanything_svc_5672
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: kafka_shipanything_svc_9092
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: detector-app-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: detector-app_shipanything_svc_80
+  from:
+  - targetRef:
+      kind: Mesh
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: detector-postgres_shipanything_svc_5432
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: redis_shipanything_svc_6379
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: rabbitmq_shipanything_svc_5672
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: kafka_shipanything_svc_9092
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: location-app-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: location-app_shipanything_svc_80
+  from:
+  - targetRef:
+      kind: Mesh
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: location-postgres_shipanything_svc_5432
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: redis_shipanything_svc_6379
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: rabbitmq_shipanything_svc_5672
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: kafka_shipanything_svc_9092
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: payments-app-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: payments-app_shipanything_svc_80
+  from:
+  - targetRef:
+      kind: Mesh
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: payments-postgres_shipanything_svc_5432
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: redis_shipanything_svc_6379
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: rabbitmq_shipanything_svc_5672
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: kafka_shipanything_svc_9092
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: database-access-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: auth-postgres_shipanything_svc_5432
+  from:
+  - targetRef:
+      kind: MeshService
+      name: auth-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: booking-database-access-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: booking-postgres_shipanything_svc_5432
+  from:
+  - targetRef:
+      kind: MeshService
+      name: booking-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: detector-database-access-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: detector-postgres_shipanything_svc_5432
+  from:
+  - targetRef:
+      kind: MeshService
+      name: detector-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: location-database-access-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: location-postgres_shipanything_svc_5432
+  from:
+  - targetRef:
+      kind: MeshService
+      name: location-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: payments-database-access-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: payments-postgres_shipanything_svc_5432
+  from:
+  - targetRef:
+      kind: MeshService
+      name: payments-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: redis-access-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: redis_shipanything_svc_6379
+  from:
+  - targetRef:
+      kind: MeshService
+      name: auth-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: booking-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: detector-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: location-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: payments-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: rabbitmq-access-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: rabbitmq_shipanything_svc_5672
+  from:
+  - targetRef:
+      kind: MeshService
+      name: auth-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: booking-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: detector-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: location-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: payments-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: kafka-access-permissions
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: MeshService
+    name: kafka_shipanything_svc_9092
+  from:
+  - targetRef:
+      kind: MeshService
+      name: auth-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: booking-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: detector-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: location-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: payments-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTrafficPermission
+metadata:
+  name: inter-service-communication
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: Mesh
+  from:
+  - targetRef:
+      kind: MeshService
+      name: auth-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: booking-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: detector-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: location-app_shipanything_svc_80
+    default:
+      action: Allow
+  - targetRef:
+      kind: MeshService
+      name: payments-app_shipanything_svc_80
+    default:
+      action: Allow
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshTimeout
+metadata:
+  name: default-timeout
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: Mesh
+  to:
+  - targetRef:
+      kind: Mesh
+    default:
+      connectionTimeout: 5s
+      idleTimeout: 60s
+      http:
+        requestTimeout: 30s
+---
+apiVersion: kuma.io/v1alpha1
+kind: MeshRetry
+metadata:
+  name: default-retry
+  namespace: shipanything-mesh
+spec:
+  targetRef:
+    kind: Mesh
+  to:
+  - targetRef:
+      kind: Mesh
+    default:
+      http:
+        numRetries: 3
+        perTryTimeout: 10s
+        backOff:
+          baseInterval: 1s
+          maxInterval: 10s
+        retryOn:
+        - 5xx
+        - gateway-error
+        - connect-failure
+        - refused-stream

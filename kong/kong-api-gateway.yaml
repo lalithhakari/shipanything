@@ -1,0 +1,474 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kong
+  labels:
+    name: kong
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kong-serviceaccount
+  namespace: kong
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kong-ingress
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - endpoints
+  - nodes
+  - pods
+  - secrets
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - update
+- apiGroups:
+  - configuration.konghq.com
+  resources:
+  - tcpingresses/status
+  verbs:
+  - update
+- apiGroups:
+  - configuration.konghq.com
+  resources:
+  - kongplugins
+  - kongcredentials
+  - kongconsumers
+  - kongingresses
+  - tcpingresses
+  - udpingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kong-ingress
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kong-ingress
+subjects:
+- kind: ServiceAccount
+  name: kong-serviceaccount
+  namespace: kong
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-proxy
+  namespace: kong
+  labels:
+    app: kong
+spec:
+  type: LoadBalancer
+  ports:
+  - name: proxy
+    port: 80
+    targetPort: 8000
+  - name: proxy-ssl
+    port: 443
+    targetPort: 8443
+  selector:
+    app: kong
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-admin
+  namespace: kong
+  labels:
+    app: kong
+spec:
+  type: ClusterIP
+  ports:
+  - name: admin
+    port: 8001
+    targetPort: 8001
+  - name: admin-ssl
+    port: 8444
+    targetPort: 8444
+  selector:
+    app: kong
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong
+  namespace: kong
+  labels:
+    app: kong
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong
+  template:
+    metadata:
+      labels:
+        app: kong
+    spec:
+      serviceAccountName: kong-serviceaccount
+      containers:
+      - name: proxy
+        image: kong:3.4
+        env:
+        - name: KONG_DATABASE
+          value: "off"
+        - name: KONG_DECLARATIVE_CONFIG
+          value: "/kong/declarative/kong.yaml"
+        - name: KONG_PROXY_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_ADMIN_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_PROXY_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_LISTEN
+          value: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+        - name: KONG_PROXY_LISTEN
+          value: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+        - name: KONG_PLUGINS
+          value: "bundled,jwt2header"
+        ports:
+        - name: proxy
+          containerPort: 8000
+        - name: proxy-ssl
+          containerPort: 8443
+        - name: admin
+          containerPort: 8001
+        - name: admin-ssl
+          containerPort: 8444
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 8001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: kong-declarative-config
+          mountPath: /kong/declarative
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - name: ingress-controller
+        image: kong/kubernetes-ingress-controller:2.12
+        env:
+        - name: CONTROLLER_KONG_ADMIN_URL
+          value: "http://127.0.0.1:8001"
+        - name: CONTROLLER_PUBLISH_SERVICE
+          value: "kong/kong-proxy"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 10254
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 10254
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      volumes:
+      - name: kong-declarative-config
+        configMap:
+          name: kong-declarative-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kong-declarative-config
+  namespace: kong
+data:
+  kong.yaml: |
+    _format_version: "3.0"
+    _transform: true
+    
+    services:
+    - name: auth-service
+      url: http://auth-app.shipanything.svc.cluster.local:80
+      plugins:
+      - name: jwt2header
+        config:
+          header_name: "X-User-Data"
+          jwt_claim: "user"
+    
+    - name: booking-service
+      url: http://booking-app.shipanything.svc.cluster.local:80
+      plugins:
+      - name: jwt2header
+        config:
+          header_name: "X-User-Data"
+          jwt_claim: "user"
+    
+    - name: detector-service
+      url: http://detector-app.shipanything.svc.cluster.local:80
+      plugins:
+      - name: jwt2header
+        config:
+          header_name: "X-User-Data"
+          jwt_claim: "user"
+    
+    - name: location-service
+      url: http://location-app.shipanything.svc.cluster.local:80
+      plugins:
+      - name: jwt2header
+        config:
+          header_name: "X-User-Data"
+          jwt_claim: "user"
+    
+    - name: payments-service
+      url: http://payments-app.shipanything.svc.cluster.local:80
+      plugins:
+      - name: jwt2header
+        config:
+          header_name: "X-User-Data"
+          jwt_claim: "user"
+    
+    routes:
+    - name: auth-route
+      service: auth-service
+      hosts:
+      - auth.shipanything.test
+      paths:
+      - /
+    
+    - name: booking-route
+      service: booking-service
+      hosts:
+      - booking.shipanything.test
+      paths:
+      - /
+    
+    - name: detector-route
+      service: detector-service
+      hosts:
+      - detector.shipanything.test
+      paths:
+      - /
+    
+    - name: location-route
+      service: location-service
+      hosts:
+      - location.shipanything.test
+      paths:
+      - /
+    
+    - name: payments-route
+      service: payments-service
+      hosts:
+      - payments.shipanything.test
+      paths:
+      - /
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: jwt2header-plugin
+  namespace: shipanything
+config:
+  header_name: "X-User-Data"
+  jwt_claim: "user"
+  remove_jwt_from_header: false
+plugin: jwt2header
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: kong
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: ingress-controllers.konghq.com/kong
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auth-ingress
+  namespace: shipanything
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/plugins: jwt2header-plugin
+spec:
+  ingressClassName: kong
+  rules:
+  - host: auth.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-app
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: booking-ingress
+  namespace: shipanything
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/plugins: jwt2header-plugin
+spec:
+  ingressClassName: kong
+  rules:
+  - host: booking.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: booking-app
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: detector-ingress
+  namespace: shipanything
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/plugins: jwt2header-plugin
+spec:
+  ingressClassName: kong
+  rules:
+  - host: detector.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: detector-app
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: location-ingress
+  namespace: shipanything
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/plugins: jwt2header-plugin
+spec:
+  ingressClassName: kong
+  rules:
+  - host: location.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: location-app
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: payments-ingress
+  namespace: shipanything
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/plugins: jwt2header-plugin
+spec:
+  ingressClassName: kong
+  rules:
+  - host: payments.shipanything.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: payments-app
+            port:
+              number: 80

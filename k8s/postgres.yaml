@@ -1,0 +1,354 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shipanything
+---
+# PostgreSQL for Auth App
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-auth
+  namespace: shipanything
+  labels:
+    app: postgres-auth
+    service: auth-app
+spec:
+  serviceName: postgres-auth-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-auth
+  template:
+    metadata:
+      labels:
+        app: postgres-auth
+        service: auth-app
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "auth_db"
+        - name: POSTGRES_USER
+          value: "auth_user"
+        - name: POSTGRES_PASSWORD
+          value: "auth_password"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-auth-headless
+  namespace: shipanything
+  labels:
+    app: postgres-auth
+    service: auth-app
+spec:
+  clusterIP: None
+  selector:
+    app: postgres-auth
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+# PostgreSQL for Booking App
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-booking
+  namespace: shipanything
+  labels:
+    app: postgres-booking
+    service: booking-app
+spec:
+  serviceName: postgres-booking-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-booking
+  template:
+    metadata:
+      labels:
+        app: postgres-booking
+        service: booking-app
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "booking_db"
+        - name: POSTGRES_USER
+          value: "booking_user"
+        - name: POSTGRES_PASSWORD
+          value: "booking_password"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-booking-headless
+  namespace: shipanything
+  labels:
+    app: postgres-booking
+    service: booking-app
+spec:
+  clusterIP: None
+  selector:
+    app: postgres-booking
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+# PostgreSQL for Detector App
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-detector
+  namespace: shipanything
+  labels:
+    app: postgres-detector
+    service: detector-app
+spec:
+  serviceName: postgres-detector-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-detector
+  template:
+    metadata:
+      labels:
+        app: postgres-detector
+        service: detector-app
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "detector_db"
+        - name: POSTGRES_USER
+          value: "detector_user"
+        - name: POSTGRES_PASSWORD
+          value: "detector_password"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-detector-headless
+  namespace: shipanything
+  labels:
+    app: postgres-detector
+    service: detector-app
+spec:
+  clusterIP: None
+  selector:
+    app: postgres-detector
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+# PostgreSQL for Location App
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-location
+  namespace: shipanything
+  labels:
+    app: postgres-location
+    service: location-app
+spec:
+  serviceName: postgres-location-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-location
+  template:
+    metadata:
+      labels:
+        app: postgres-location
+        service: location-app
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "location_db"
+        - name: POSTGRES_USER
+          value: "location_user"
+        - name: POSTGRES_PASSWORD
+          value: "location_password"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-location-headless
+  namespace: shipanything
+  labels:
+    app: postgres-location
+    service: location-app
+spec:
+  clusterIP: None
+  selector:
+    app: postgres-location
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+# PostgreSQL for Payments App
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-payments
+  namespace: shipanything
+  labels:
+    app: postgres-payments
+    service: payments-app
+spec:
+  serviceName: postgres-payments-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-payments
+  template:
+    metadata:
+      labels:
+        app: postgres-payments
+        service: payments-app
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "payments_db"
+        - name: POSTGRES_USER
+          value: "payments_user"
+        - name: POSTGRES_PASSWORD
+          value: "payments_password"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-payments-headless
+  namespace: shipanything
+  labels:
+    app: postgres-payments
+    service: payments-app
+spec:
+  clusterIP: None
+  selector:
+    app: postgres-payments
+  ports:
+  - port: 5432
+    targetPort: 5432
