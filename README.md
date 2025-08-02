@@ -13,11 +13,21 @@ This project implements a modern microservices architecture with the following k
 - **Infrastructure Services**: PostgreSQL, Redis, RabbitMQ, Kafka
 - **Automated deployment** with comprehensive tooling
 
+## Repository Structure
+
+This project uses **git submodules** for Laravel microservices management. Each microservice is maintained in its own repository:
+
+- [Auth App](https://github.com/lalithhakari/shipanything-auth-app) - Authentication service
+- [Booking App](https://github.com/lalithhakari/shipanything-booking-app) - Booking management service
+- [Detector App](https://github.com/lalithhakari/shipanything-detector-app) - Detection/tracking service
+- [Location App](https://github.com/lalithhakari/shipanything-location-app) - Location management service
+- [Payments App](https://github.com/lalithhakari/shipanything-payments-app) - Payment processing service
+
 ## Project Structure
 
 ```
 .
-├── microservices/          # Individual microservice applications
+├── microservices/          # Individual microservice applications (git submodules)
 │   ├── auth-app/           # Authentication service (Laravel)
 │   ├── booking-app/        # Booking management service (Laravel)
 │   ├── detector-app/       # Detection/tracking service (Laravel)
@@ -105,6 +115,109 @@ chmod +x kind && sudo mv kind /usr/local/bin/
 # Helm
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 ```
+
+## Git Submodules Setup
+
+### Initial Clone with Submodules
+
+When cloning this repository for the first time:
+
+```bash
+# Clone the main repository with all submodules
+git clone --recursive https://github.com/lalithhakari/shipanything.git
+
+# Or if you already cloned without --recursive:
+git clone https://github.com/lalithhakari/shipanything.git
+cd shipanything
+git submodule init
+git submodule update
+```
+
+### Working with Submodules
+
+**Update all submodules to latest commits:**
+
+```bash
+# Update all submodules to their latest commits on main branch
+git submodule update --remote
+
+# Update specific submodule
+git submodule update --remote microservices/auth-app
+```
+
+**Making changes in a submodule:**
+
+```bash
+# Navigate to the submodule
+cd microservices/auth-app
+
+# Make your changes
+git add .
+git commit -m "Your commit message"
+git push origin main
+
+# Return to main repository and update submodule reference
+cd ../..
+git add microservices/auth-app
+git commit -m "Update auth-app submodule"
+git push origin main
+```
+
+**Check submodule status:**
+
+```bash
+# Show current submodule commit hashes
+git submodule status
+
+# Show if submodules have uncommitted changes
+git submodule foreach git status
+```
+
+**Pull latest changes from all repositories:**
+
+```bash
+# Update main repository
+git pull origin main
+
+# Update all submodules
+git submodule update --remote
+
+# Alternative: pull all in one command
+git pull --recurse-submodules
+```
+
+**Reset submodules to committed state:**
+
+```bash
+# Reset all submodules to their committed state
+git submodule update --init --recursive
+
+# Reset specific submodule
+git submodule update microservices/auth-app
+```
+
+### Team Development Workflow
+
+**For team members joining the project:**
+
+1. Clone with submodules: `git clone --recursive https://github.com/lalithhakari/shipanything.git`
+2. Always pull with submodules: `git pull --recurse-submodules`
+3. When switching branches: `git checkout <branch> && git submodule update`
+
+**When working on features:**
+
+1. Create feature branch in main repo: `git checkout -b feature/new-feature`
+2. Work in relevant submodules and push changes to their repositories
+3. Update main repo to reference new submodule commits
+4. Push main repo feature branch
+5. Create pull request for main repository
+
+**Important Notes:**
+
+- Always commit and push submodule changes before updating main repository
+- Use `git submodule foreach git pull origin main` to pull latest in all submodules
+- Submodules point to specific commits, not branches
+- When deploying, ensure all team members have the same submodule commit references
 
 ## Local Development Setup
 
@@ -196,17 +309,33 @@ When developing and testing individual microservices, you may need to rebuild an
 **Rebuild and reload a single microservice:**
 
 ```bash
-# 1. Build the Docker image locally
+# 1. Navigate to the specific microservice submodule
+cd microservices/auth-app
+
+# 2. Make your changes and commit them
+git add .
+git commit -m "Your changes"
+git push origin main
+
+# 3. Return to main repository root
+cd ../..
+
+# 4. Build the Docker image locally
 docker build -t "auth-app:latest" ./microservices/auth-app/
 
-# 2. Load the image into the Kind cluster
+# 5. Load the image into the Kind cluster
 kind load docker-image "auth-app:latest" --name="shipanything"
 
-# 3. Restart the deployment to use the new image
+# 6. Restart the deployment to use the new image
 kubectl rollout restart deployment/auth-app -n shipanything
 
-# 4. Wait for the rollout to complete
+# 7. Wait for the rollout to complete
 kubectl rollout status deployment/auth-app -n shipanything
+
+# 8. Update main repository to reference the new submodule commit
+git add microservices/auth-app
+git commit -m "Update auth-app submodule with latest changes"
+git push origin main
 ```
 
 **When to use these commands:**
@@ -219,6 +348,20 @@ kubectl rollout status deployment/auth-app -n shipanything
 **For multiple services:**
 
 ```bash
+# Update all submodules first
+cd microservices
+for service in auth-app booking-app detector-app location-app payments-app; do
+    echo "Updating $service submodule..."
+    cd $service
+    git pull origin main
+    cd ..
+done
+cd ..
+
+# Update main repository to reference new commits
+git add microservices/
+git commit -m "Update all microservice submodules"
+
 # Rebuild all services (example sequence)
 for service in auth-app booking-app detector-app location-app payments-app; do
     echo "Rebuilding $service..."
@@ -235,6 +378,96 @@ kubectl wait --for=condition=Available deployment --all -n shipanything --timeou
 
 ```bash
 ./scripts/fix-permissions.sh
+```
+
+## Git Submodules Troubleshooting
+
+### Common Issues and Solutions
+
+**Issue: Submodule directories are empty after clone**
+
+```bash
+# Solution: Initialize and update submodules
+git submodule init
+git submodule update
+```
+
+**Issue: Submodule shows "dirty" status with uncommitted changes**
+
+```bash
+# Check what's changed
+cd microservices/auth-app
+git status
+
+# If you want to discard changes:
+git checkout .
+
+# If you want to commit changes:
+git add .
+git commit -m "Your changes"
+git push origin main
+cd ../..
+git add microservices/auth-app
+git commit -m "Update auth-app submodule"
+```
+
+**Issue: Submodule is ahead/behind remote**
+
+```bash
+# Pull latest changes in submodule
+cd microservices/auth-app
+git pull origin main
+cd ../..
+
+# Update main repo to point to new commit
+git add microservices/auth-app
+git commit -m "Update auth-app submodule to latest"
+```
+
+**Issue: Cannot switch branches because of submodule conflicts**
+
+```bash
+# Update submodules when switching branches
+git checkout <branch-name>
+git submodule update --init --recursive
+```
+
+**Issue: Submodule URL has changed**
+
+```bash
+# Update submodule URL
+git submodule set-url microservices/auth-app https://github.com/lalithhakari/new-auth-app.git
+
+# Sync and update
+git submodule sync
+git submodule update --init --recursive
+```
+
+**Issue: Remove a submodule completely**
+
+```bash
+# Remove submodule from .gitmodules
+git submodule deinit microservices/old-app
+
+# Remove submodule directory
+git rm microservices/old-app
+
+# Remove submodule cache
+rm -rf .git/modules/microservices/old-app
+
+# Commit changes
+git commit -m "Remove old-app submodule"
+```
+
+### Useful Git Aliases for Submodules
+
+Add these to your `~/.gitconfig` for easier submodule management:
+
+```bash
+git config --global alias.sub-status 'submodule foreach git status'
+git config --global alias.sub-pull 'submodule foreach git pull origin main'
+git config --global alias.sub-update 'submodule update --remote'
+git config --global alias.clone-recursive 'clone --recursive'
 ```
 
 ## Production Deployment
