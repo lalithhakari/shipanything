@@ -1,0 +1,15 @@
+[submodule "microservices/auth-app"]
+	path = microservices/auth-app
+	url = https://github.com/lalithhakari/shipanything-auth-app.git
+[submodule "microservices/booking-app"]
+	path = microservices/booking-app
+	url = https://github.com/lalithhakari/shipanything-booking-app.git
+[submodule "microservices/detector-app"]
+	path = microservices/detector-app
+	url = https://github.com/lalithhakari/shipanything-detector-app.git
+[submodule "microservices/location-app"]
+	path = microservices/location-app
+	url = https://github.com/lalithhakari/shipanything-location-app.git
+[submodule "microservices/payments-app"]
+	path = microservices/payments-app
+	url = https://github.com/lalithhakari/shipanything-payments-app.git
